@@ -7,8 +7,8 @@ export default class MessagesService {
     console.log(`Thank you for using File Manager, ${username}, goodbye!`);
   }
 
-  static workingDirectory(dir) {
-    console.log(`You are currently in ${dir}.`)
+  static workingDirectory() {
+    console.log(`You are currently in ${process.cwd()}.`);
   }
 
   static unknownOperation() {

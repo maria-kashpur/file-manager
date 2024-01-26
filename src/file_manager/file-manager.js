@@ -6,12 +6,14 @@ import FilesService from "./services/files/files.service.js";
 import OSService from "./services/os/os.service.js";
 import ZipService from "./services/zip/zip.service.js";
 import HashService from "./services/hash/hash.servise.js";
+import { cwd } from "node:process";
 
 export default class fileManager {
   constructor() {
+    this.startingWorkingDirectory = process.cwd()
+    console.log(this.startingWorkingDirectory)
     this.userName = "User";
-    this.worknigDir = this.#getWorkingDirectory();
-    this.root = this.#getWorkingDirectory();
+    process.chdir(homedir());
   }
 
   setWorkingDir(value) {
@@ -31,7 +33,7 @@ export default class fileManager {
     process.chdir(homedir());
     this.#getUserName();
     MessagesService.greetings(this.userName);
-    MessagesService.workingDirectory(this.#getWorkingDirectory());
+    MessagesService.workingDirectory();
 
 
     rl.on("close", () => {
@@ -42,7 +44,7 @@ export default class fileManager {
     rl.on("line", async (input) => {
       const operation = this.#parceInput(input);
       await this.#callOperation(operation, rl);
-      MessagesService.workingDirectory(this.#getWorkingDirectory());
+      MessagesService.workingDirectory();
     });
   }
 
@@ -177,7 +179,4 @@ export default class fileManager {
     }
   }
 
-  #getWorkingDirectory() {
-    return process.cwd();
-  }
 }

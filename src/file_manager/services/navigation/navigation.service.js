@@ -4,17 +4,28 @@ import MessagesService from "../massage/message.service.js";
 
 export default class NavigationServise {
   // Перейти из текущего каталога выше (когда вы находитесь в корневой папке, эта операция не должна менять рабочий каталог)
+  // почитать внимательно доку, проверить все нюансы работы метода
   static up() {
-    console.log("up is success");
+    const currentDirectory = process.cwd();
+    const parentDirectory = path.resolve(currentDirectory, "..");
+    
+    if (parentDirectory !== path.resolve(parentDirectory, "..")) {
+      process.chdir(parentDirectory);
+    } 
   }
 
-  //Перейти в выделенную папку из текущего каталога ( path_to_directoryможет быть относительным или абсолютным)
   static cd(pathToDirectory) {
-    console.log(`cd is success, params: ${pathToDirectory}`);
+    const currentDirectory = process.cwd();
+    const absolutPathToDirectory = path.isAbsolute(pathToDirectory) ? pathToDirectory : path.resolve(currentDirectory, pathToDirectory);
+    try {
+      process.chdir(absolutPathToDirectory);
+    } catch {
+      MessagesService.errorExecutionOfOperation()
+    }
   }
 
-  static async ls(currentDirectory) {
-    //  const currentDirectory = process.cwd();
+  static async ls() {
+    const currentDirectory = process.cwd();
     try {
       const filesAndFolders = await readdir(currentDirectory, {
         withFileTypes: true,
