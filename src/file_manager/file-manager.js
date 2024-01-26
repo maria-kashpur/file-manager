@@ -41,12 +41,12 @@ export default class fileManager {
 
     rl.on("line", async (input) => {
       const operation = this.#parceInput(input);
-      this.#callOperation(operation, rl);
+      await this.#callOperation(operation, rl);
       MessagesService.workingDirectory(this.#getWorkingDirectory());
     });
   }
 
-  #callOperation(operation, rl) {
+  async #callOperation(operation, rl) {
     if (!operation || !operation.command) {
       MessagesService.unknownOperation();
       return;
@@ -82,7 +82,7 @@ export default class fileManager {
         break;
 
       case "ls":
-        if (isValidParams(params, 0)) NavigationServise.ls(this.worknigDir);
+        if (isValidParams(params, 0)) await NavigationServise.ls(this.worknigDir);
         break;
 
       case "cat":
