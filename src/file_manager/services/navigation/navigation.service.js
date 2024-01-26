@@ -1,4 +1,6 @@
 import path from "node:path";
+import { readdir } from "node:fs/promises";
+import MessagesService from "../massage/message.service.js";
 
 export default class NavigationServise {
   // Перейти из текущего каталога выше (когда вы находитесь в корневой папке, эта операция не должна менять рабочий каталог)
@@ -11,8 +13,32 @@ export default class NavigationServise {
     console.log(`cd is success, params: ${pathToDirectory}`);
   }
 
-  // Вывести в консоль список всех файлов и папок в текущем каталоге.
-  static ls() {
-    console.log("ls is success");
+  static async ls(currentDirectory) {
+    //  const currentDirectory = process.cwd();
+    try {
+      const filesAndFolders = await readdir(currentDirectory, {
+        withFileTypes: true,
+      });
+
+      const list = filesAndFolders
+        .map((item) => {
+          const { name } = item;
+          const type = item.isDirectory()
+            ? "directory"
+            : item.isFile()
+            ? "file"
+            : item.isSymbolicLinc()
+            ? "symbolic link"
+            : "unknown";
+          return { name, type };
+        })
+        .sort(
+          (a, b) => a.type.localeCompare(b.type) || a.name.localeCompare(b.name)
+        );
+
+      console.table(list);
+    } catch (error) {
+      MessagesService.errorExecutionOfOperation();
+    }
   }
 }
