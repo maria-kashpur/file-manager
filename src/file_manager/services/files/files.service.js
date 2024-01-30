@@ -1,11 +1,24 @@
-import fs from "fs";
-
-import { parse } from "path";
+import fs, { createReadStream } from "fs";
+import { parse, isAbsolute, resolve } from "path";
+import MessagesService from "../../services/massage/message.service.js";
 
 export default class FilesService {
   // Прочитайте файл и распечатайте его содержимое в консоли (следует использовать поток Readable):
   static async cat(pathToFile) {
-    console.log("cat is success");
+    const currentDirectory = process.cwd();
+    const absolutPathToFile = isAbsolute(pathToFile)
+      ? pathToFile
+      : resolve(currentDirectory, pathToFile);
+
+    console.log(pathToFile);
+    console.log(absolutPathToFile);
+
+    try {
+      const rl = createReadStream(absolutPathToFile);
+      rl.pipe(process.stdout);
+    } catch {
+      MessagesService.errorExecutionOfOperation();
+    }
   }
 
   // Создайте пустой файл в текущем рабочем каталоге

@@ -74,7 +74,6 @@ export default class fileManager {
         }
       case "up":
         if (isValidParams(params, 0)) {
-          
           NavigationServise.up()
         };
         break;
@@ -88,7 +87,7 @@ export default class fileManager {
         break;
 
       case "cat":
-        if (isValidParams(params, 1)) FilesService.cat(...params);
+        if (isValidParams(params, 1)) await FilesService.cat(...params);
         break;
 
       case "add":
