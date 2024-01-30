@@ -1,4 +1,4 @@
-import  {promises as fs, createReadStream } from "fs";
+import  {promises as fs, createReadStream, access } from "fs";
 import path, { parse, isAbsolute, resolve } from "path";
 import MessagesService from "../../services/massage/message.service.js";
 
@@ -28,8 +28,24 @@ export default class FilesService {
   }
 
   // Переименуйте файл (содержимое должно остаться неизменным):
-  static rn(pathToFile, new_filename) {
-    console.log("rn is success");
+   static async rn(pathToFile, newFileName) {
+    const currentDirectory = process.cwd();
+    const absolutPathToFile = isAbsolute(pathToFile)
+          ? pathToFile
+          : resolve(currentDirectory, pathToFile);
+    const {dir, base} = path.parse(absolutPathToFile);
+    const files = await fs.readdir(dir);
+    const isValidNewName = !files.includes(newFileName);
+    const isValidSource = files.includes(base);
+    if (!isValidNewName || !isValidSource) {
+      MessagesService.errorExecutionOfOperation();
+      return;
+    }
+    try {
+      await fs.rename(path.join(dir, base), path.join(dir, newFileName));
+    } catch {
+      MessagesService.errorExecutionOfOperation();
+    }
   }
 
   // Скопировать файл (следует выполнять с использованием потоков с возможностью чтения и записи)

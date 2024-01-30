@@ -95,7 +95,7 @@ export default class fileManager {
         break;
 
       case "rn":
-        if (isValidParams(params, 2)) FilesService.add(...params);
+        if (isValidParams(params, 2)) await FilesService.rn(...params);
         break;
 
       case "mv":
