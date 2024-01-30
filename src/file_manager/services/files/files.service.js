@@ -1,5 +1,5 @@
-import fs, { createReadStream } from "fs";
-import { parse, isAbsolute, resolve } from "path";
+import  {promises as fs, createReadStream } from "fs";
+import path, { parse, isAbsolute, resolve } from "path";
 import MessagesService from "../../services/massage/message.service.js";
 
 export default class FilesService {
@@ -9,10 +9,6 @@ export default class FilesService {
     const absolutPathToFile = isAbsolute(pathToFile)
       ? pathToFile
       : resolve(currentDirectory, pathToFile);
-
-    console.log(pathToFile);
-    console.log(absolutPathToFile);
-
     try {
       const rl = createReadStream(absolutPathToFile);
       rl.pipe(process.stdout);
@@ -21,9 +17,14 @@ export default class FilesService {
     }
   }
 
-  // Создайте пустой файл в текущем рабочем каталоге
   static async add(newFileName) {
-    console.log("add is success");
+    const currentDirectory = process.cwd();
+    const absolutPathToFile = path.join(currentDirectory, newFileName);
+    try {
+      await fs.writeFile(absolutPathToFile, "", { flag: "wx" });
+    } catch {
+      MessagesService.errorExecutionOfOperation();
+    }
   }
 
   // Переименуйте файл (содержимое должно остаться неизменным):
