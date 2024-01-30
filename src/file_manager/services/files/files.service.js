@@ -54,7 +54,15 @@ export default class FilesService {
   }
 
   // Удалить файл
-  static rm(pathToFile) {
-    console.log("rm is success");
+  static async rm(pathToFile) {
+    const currentDirectory = process.cwd();
+    const absolutPathToFile = isAbsolute(pathToFile)
+      ? pathToFile
+      : resolve(currentDirectory, pathToFile);
+    try {
+      await fs.rm(absolutPathToFile);
+    } catch {
+      MessagesService.errorExecutionOfOperation();
+    } 
   }
 }

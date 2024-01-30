@@ -74,8 +74,8 @@ export default class fileManager {
         }
       case "up":
         if (isValidParams(params, 0)) {
-          NavigationServise.up()
-        };
+          NavigationServise.up();
+        }
         break;
 
       case "cd":
@@ -83,7 +83,8 @@ export default class fileManager {
         break;
 
       case "ls":
-        if (isValidParams(params, 0)) await NavigationServise.ls(this.worknigDir);
+        if (isValidParams(params, 0))
+          await NavigationServise.ls(this.worknigDir);
         break;
 
       case "cat":
@@ -100,6 +101,10 @@ export default class fileManager {
 
       case "mv":
         if (isValidParams(params, 2)) FilesService.add(...params);
+        break;
+
+      case "rm":
+        if (isValidParams(params, 1)) await FilesService.rm(...params);
         break;
 
       case "os":
