@@ -74,7 +74,7 @@ export default class fileManager {
 
       case "up":
         if (isValidParams(params, 0)) {
-          NavigationServise.up();
+          await NavigationServise.up();
         }
         break;
 

@@ -1,32 +1,39 @@
 import path from "node:path";
-import { readdir } from "node:fs/promises";
-import MessagesService from "../massage/message.service.js";
+import { readdir, access } from "node:fs/promises";
+import fs from 'fs';
 
 export default class NavigationServise {
-  // Перейти из текущего каталога выше (когда вы находитесь в корневой папке, эта операция не должна менять рабочий каталог)
-  // почитать внимательно доку, проверить все нюансы работы метода
-  static up() {
-    const currentDirectory = process.cwd();
-    const parentDirectory = path.resolve(currentDirectory, "..");
-    
-    if (parentDirectory !== path.resolve(parentDirectory, "..")) {
-      process.chdir(parentDirectory);
-    } 
+  static async up() {
+   try {
+     const currentDirectory = process.cwd();
+     const parentDirectory = path.resolve(currentDirectory, "..");
+
+     if (currentDirectory !== parentDirectory) {
+       await access(parentDirectory, fs.constants.F_OK);
+       process.chdir(parentDirectory);
+     } 
+    } catch (e){
+      throw new Error(
+        "error when setting up the working directory",
+      );
+    }
   }
 
   static cd(pathToDirectory) {
-    const currentDirectory = process.cwd();
-    const absolutPathToDirectory = path.isAbsolute(pathToDirectory) ? pathToDirectory : path.resolve(currentDirectory, pathToDirectory);
     try {
+    const currentDirectory = process.cwd();
+    const absolutPathToDirectory = path.isAbsolute(pathToDirectory)
+      ? pathToDirectory
+      : path.resolve(currentDirectory, pathToDirectory);
       process.chdir(absolutPathToDirectory);
     } catch {
-      MessagesService.errorExecutionOfOperation()
+      throw new Error("incorrect dir path specified");
     }
   }
 
   static async ls() {
-    const currentDirectory = process.cwd();
     try {
+      const currentDirectory = process.cwd();
       const filesAndFolders = await readdir(currentDirectory, {
         withFileTypes: true,
       });
@@ -38,7 +45,7 @@ export default class NavigationServise {
             ? "directory"
             : item.isFile()
             ? "file"
-            : item.isSymbolicLinc()
+            : item.isSymbolicLink()
             ? "symbolic link"
             : "unknown";
           return { name, type };
@@ -48,8 +55,10 @@ export default class NavigationServise {
         );
 
       console.table(list);
-    } catch (error) {
-      MessagesService.errorExecutionOfOperation();
+    } catch {
+      throw new Error(
+        "error printing in console list of all files and folders in current directory"
+      );
     }
   }
 }
