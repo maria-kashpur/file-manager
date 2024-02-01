@@ -6,35 +6,32 @@ import FilesService from "./services/files/files.service.js";
 import OSService from "./services/os/os.service.js";
 import ZipService from "./services/zip/zip.service.js";
 import HashService from "./services/hash/hash.servise.js";
-import { cwd } from "node:process";
 
 export default class fileManager {
   constructor() {
-    this.startingWorkingDirectory = process.cwd()
-    console.log(this.startingWorkingDirectory)
+    this.startingWorkingDirectory = process.cwd();
+    console.log(this.startingWorkingDirectory);
     this.userName = "User";
     process.chdir(homedir());
   }
 
   setWorkingDir(value) {
     if (this.root === this.worknigDir) {
-      return this.worknigDir
+      return this.worknigDir;
     }
-    return this.worknigDir = value;
+    return (this.worknigDir = value);
   }
 
   async init() {
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      terminal: true,
     });
 
     process.chdir(homedir());
     this.#getUserName();
     MessagesService.greetings(this.userName);
     MessagesService.workingDirectory();
-
 
     rl.on("close", () => {
       MessagesService.goodbye(this.userName);
@@ -43,8 +40,9 @@ export default class fileManager {
 
     rl.on("line", async (input) => {
       const operation = this.#parceInput(input);
-      await this.#callOperation(operation, rl);
-      MessagesService.workingDirectory();
+      await this.#callOperation(operation, rl)
+        .catch(() => MessagesService.errorExecutionOfOperation())
+        .finally(() => MessagesService.workingDirectory());
     });
   }
 
@@ -72,6 +70,8 @@ export default class fileManager {
         if (isValidParams(params, 0)) {
           rl.close();
         }
+        break;
+
       case "up":
         if (isValidParams(params, 0)) {
           NavigationServise.up();
@@ -88,23 +88,39 @@ export default class fileManager {
         break;
 
       case "cat":
-        if (isValidParams(params, 1)) await FilesService.cat(...params);
+        if (isValidParams(params, 1)) {
+          await FilesService.cat(...params);
+        }
         break;
 
       case "add":
-        if (isValidParams(params, 1)) FilesService.add(...params);
+        if (isValidParams(params, 1)) {
+          await FilesService.add(...params);
+        }
         break;
 
       case "rn":
-        if (isValidParams(params, 2)) await FilesService.rn(...params);
+        if (isValidParams(params, 2)) {
+          await FilesService.rn(...params);
+        }
+        break;
+
+      case "cp":
+        if (isValidParams(params, 2)) {
+          await FilesService.cp(...params);
+        }
         break;
 
       case "mv":
-        if (isValidParams(params, 2)) FilesService.add(...params);
+        if (isValidParams(params, 2)) {
+          await FilesService.mv(...params);
+        }
         break;
 
       case "rm":
-        if (isValidParams(params, 1)) await FilesService.rm(...params);
+        if (isValidParams(params, 1)) {
+          await FilesService.rm(...params);
+        }
         break;
 
       case "os":
@@ -182,5 +198,4 @@ export default class fileManager {
       this.userName = name;
     }
   }
-
 }

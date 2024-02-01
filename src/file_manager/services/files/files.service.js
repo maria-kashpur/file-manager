@@ -1,68 +1,86 @@
-import  {promises as fs, createReadStream, access } from "fs";
+import { promises as fs, createReadStream, createWriteStream } from "fs";
 import path, { parse, isAbsolute, resolve } from "path";
-import MessagesService from "../../services/massage/message.service.js";
-
 export default class FilesService {
-  // Прочитайте файл и распечатайте его содержимое в консоли (следует использовать поток Readable):
-  static async cat(pathToFile) {
+  static #getAbsolutPath(source) {
     const currentDirectory = process.cwd();
-    const absolutPathToFile = isAbsolute(pathToFile)
-      ? pathToFile
-      : resolve(currentDirectory, pathToFile);
+    return isAbsolute(source) ? source : resolve(currentDirectory, source);
+  }
+
+  static async #check(source, value) {
     try {
-      const rl = createReadStream(absolutPathToFile);
-      rl.pipe(process.stdout);
+      const statSource = await fs.stat(source);
+      if (value === "file") {
+        return statSource.isFile();
+      } else if (value === "dir") {
+        return statSource.isDirectory();
+      }
+      return false;
     } catch {
-      MessagesService.errorExecutionOfOperation();
+      return false;
     }
+  }
+
+  static async cat(pathToFile) {
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+    return new Promise((resolve, reject) => {
+      const rs = createReadStream(absolutPathToFile);
+      rs.pipe(process.stdout);
+      rs.on("error", () => reject(new Error("reading error")));
+      rs.on("end", resolve);
+    });
   }
 
   static async add(newFileName) {
     const currentDirectory = process.cwd();
-    const absolutPathToFile = path.join(currentDirectory, newFileName);
-    try {
-      await fs.writeFile(absolutPathToFile, "", { flag: "wx" });
-    } catch {
-      MessagesService.errorExecutionOfOperation();
-    }
+    const absolutPathToFile = path.resolve(currentDirectory, newFileName);
+    await fs.writeFile(absolutPathToFile, "", { flag: "wx" });
   }
 
-  // Переименуйте файл (содержимое должно остаться неизменным):
-   static async rn(pathToFile, newFileName) {
-    const currentDirectory = process.cwd();
-    const absolutPathToFile = isAbsolute(pathToFile)
-          ? pathToFile
-          : resolve(currentDirectory, pathToFile);
-    const {dir, base} = path.parse(absolutPathToFile);
-    const files = await fs.readdir(dir);
-    const isValidNewName = !files.includes(newFileName);
-    const isValidSource = files.includes(base);
-    if (!isValidNewName || !isValidSource) {
-      MessagesService.errorExecutionOfOperation();
-      return;
-    }
-    try {
-      await fs.rename(path.join(dir, base), path.join(dir, newFileName));
-    } catch {
-      MessagesService.errorExecutionOfOperation();
-    }
+  static async rn(pathToFile, newFileName) {
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+
+    const isFile = await this.#check(absolutPathToFile, "file");
+    if (!isFile) throw new Error("incorrect file path specified");
+
+    const { dir } = path.parse(absolutPathToFile);
+    const newFilePath = resolve(dir, newFileName);
+
+    const isValidNewName = !(await this.#check(newFilePath, "file"));
+    if (!isValidNewName) throw new Error("such a file already exists");
+
+    await fs.rename(absolutPathToFile, newFilePath);
   }
 
-  // Скопировать файл (следует выполнять с использованием потоков с возможностью чтения и записи)
-  static mv(pathToFile, pathToNewDir) {
-    console.log("mv is success");
+  static async cp(pathToFile, pathToNewDir) {
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+    const absolutPathToNewDir = this.#getAbsolutPath(pathToNewDir);
+
+    if (!(await this.#check(absolutPathToFile, "file")))
+      throw new Error("incorrect file path specified");
+    if (!(await this.#check(absolutPathToNewDir, "dir")))
+      throw new Error("incorrect dir path specified");
+
+    const fileName = parse(absolutPathToFile).base;
+    const newFilePath = resolve(absolutPathToNewDir, fileName);
+
+    return new Promise((resolve, reject) => {
+      const rs = createReadStream(absolutPathToFile);
+      const ws = createWriteStream(newFilePath, { flags: "wx" });
+      rs.on("error", () => reject(new Error("reading error")));
+      ws.on("error", () => reject(new Error("writing error")));
+      ws.on("close", resolve);
+      rs.pipe(ws);
+    });
   }
 
-  // Удалить файл
+  static async mv(pathToFile, pathToNewDir) {
+    await this.cp(pathToFile, pathToNewDir).then(
+      async () => await this.rm(pathToFile)
+    );
+  }
+
   static async rm(pathToFile) {
-    const currentDirectory = process.cwd();
-    const absolutPathToFile = isAbsolute(pathToFile)
-      ? pathToFile
-      : resolve(currentDirectory, pathToFile);
-    try {
-      await fs.rm(absolutPathToFile);
-    } catch {
-      MessagesService.errorExecutionOfOperation();
-    } 
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+    await fs.rm(absolutPathToFile);
   }
 }
