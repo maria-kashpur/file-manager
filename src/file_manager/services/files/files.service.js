@@ -1,5 +1,7 @@
 import { promises as fs, createReadStream, createWriteStream } from "fs";
 import path, { parse, isAbsolute, resolve } from "path";
+import { createBrotliCompress, createBrotliDecompress } from "zlib";
+import {pipeline} from 'stream/promises'
 export default class FilesService {
   static #getAbsolutPath(source) {
     const currentDirectory = process.cwd();
@@ -82,5 +84,46 @@ export default class FilesService {
   static async rm(pathToFile) {
     const absolutPathToFile = this.#getAbsolutPath(pathToFile);
     await fs.rm(absolutPathToFile);
+  }
+
+  static async hash(pathToFile) {
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+    return new Promise((resolve, reject) => {
+      const rs = createReadStream(absolutPathToFile);
+      const hash = createHash("sha256");
+
+      rs.on("data", (chunk) => {
+        hash.update(chunk);
+      });
+
+      rs.on("end", () => {
+        const resultHash = hash.digest("hex");
+        console.log(resultHash);
+        return resolve;
+      });
+
+      rs.on("error", () => reject(new Error("reading error")));
+    });
+  }
+
+  static async zip(action, pathToFile, pathToDestination) {
+    const absolutPathToFile = this.#getAbsolutPath(pathToFile);
+    const absolutPathToDestination = this.#getAbsolutPath(pathToDestination);
+
+
+    return new Promise(async (resolve, reject) => {
+      const brotliStreem = (action === "decompress") ? createBrotliDecompress() : createBrotliCompress();
+      const rs = createReadStream(absolutPathToFile);
+      const ws = createWriteStream(absolutPathToDestination);
+      brotliStreem.on("error", (e) => reject(new Error(`error brotliStreem: ${e.message}`)));
+      rs.on("error", () => reject(new Error("error rs")));
+      ws.on("error", () => reject(new Error('error ws')));
+      ws.on("close", resolve);
+      await pipeline(rs, brotliStreem, ws, (e) => {
+        if (e) {
+          reject(`Pipeline failed: ${e.message}`);
+        }
+      });
+    })
   }
 }

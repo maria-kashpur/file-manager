@@ -4,8 +4,6 @@ import MessagesService from "./services/massage/message.service.js";
 import NavigationServise from "./services/navigation/navigation.service.js";
 import FilesService from "./services/files/files.service.js";
 import OSService from "./services/os/os.service.js";
-import ZipService from "./services/zip/zip.service.js";
-import HashService from "./services/hash/hash.servise.js";
 
 export default class fileManager {
   constructor() {
@@ -149,14 +147,22 @@ export default class fileManager {
         break;
 
       case "hash":
-        if (isValidParams(params, 1)) HashService.hush(...params);
+        if (isValidParams(params, 1)) {
+          await FilesService.hash(...params);
+        }
         break;
 
       case "compress":
-        if (isValidParams(params, 2)) ZipService.compress(...params);
+        if (isValidParams(params, 2)) {
+          await FilesService.zip("compress", ...params);
+        }
+        break;
 
-      case "compress":
-        if (isValidParams(params, 2)) ZipService.decompress(...params);
+      case "decompress":
+        if (isValidParams(params, 2)) {
+          await FilesService.zip("decompress", ...params);
+        }
+        break;
 
       default:
         MessagesService.unknownOperation();
