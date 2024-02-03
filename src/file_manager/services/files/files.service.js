@@ -1,7 +1,7 @@
 import { promises as fs, createReadStream, createWriteStream } from "fs";
 import path, { parse, isAbsolute, resolve } from "path";
 import { createBrotliCompress, createBrotliDecompress } from "zlib";
-import {pipeline} from 'stream/promises'
+import { pipeline } from "stream/promises";
 export default class FilesService {
   static #getAbsolutPath(source) {
     const currentDirectory = process.cwd();
@@ -27,7 +27,7 @@ export default class FilesService {
     return new Promise((resolve, reject) => {
       const rs = createReadStream(absolutPathToFile);
       rs.pipe(process.stdout);
-      rs.on("error", () => reject(new Error("reading error")));
+      rs.on("error", (e) => reject(`reding error: ${e.message}`));
       rs.on("end", resolve);
     });
   }
@@ -68,8 +68,8 @@ export default class FilesService {
     return new Promise((resolve, reject) => {
       const rs = createReadStream(absolutPathToFile);
       const ws = createWriteStream(newFilePath, { flags: "wx" });
-      rs.on("error", () => reject(new Error("reading error")));
-      ws.on("error", () => reject(new Error("writing error")));
+      rs.on("error", (e) => reject(`reading error: ${e.message}`));
+      ws.on("error", (e) => reject(`writting error: ${e.message}`));
       ws.on("close", resolve);
       rs.pipe(ws);
     });
@@ -102,7 +102,7 @@ export default class FilesService {
         return resolve;
       });
 
-      rs.on("error", () => reject(new Error("reading error")));
+      rs.on("error", (e) => reject(`reading error: ${e.message}`));
     });
   }
 
@@ -110,20 +110,24 @@ export default class FilesService {
     const absolutPathToFile = this.#getAbsolutPath(pathToFile);
     const absolutPathToDestination = this.#getAbsolutPath(pathToDestination);
 
-
     return new Promise(async (resolve, reject) => {
-      const brotliStreem = (action === "decompress") ? createBrotliDecompress() : createBrotliCompress();
+      const brotliStreem =
+        action === "decompress"
+          ? createBrotliDecompress()
+          : createBrotliCompress();
       const rs = createReadStream(absolutPathToFile);
       const ws = createWriteStream(absolutPathToDestination);
-      brotliStreem.on("error", (e) => reject(new Error(`error brotliStreem: ${e.message}`)));
-      rs.on("error", () => reject(new Error("error rs")));
-      ws.on("error", () => reject(new Error('error ws')));
+      brotliStreem.on("error", (e) =>
+        reject(new Error(`error brotliStreem: ${e.message}`))
+      );
+      rs.on("error", (e) => reject(`reading error: ${e.message}`));
+      ws.on("error", (e) => reject(`writting error: ${e.message}`));
       ws.on("close", resolve);
       await pipeline(rs, brotliStreem, ws, (e) => {
         if (e) {
           reject(`Pipeline failed: ${e.message}`);
         }
       });
-    })
+    });
   }
 }

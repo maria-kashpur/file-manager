@@ -8,7 +8,6 @@ import OSService from "./services/os/os.service.js";
 export default class fileManager {
   constructor() {
     this.startingWorkingDirectory = process.cwd();
-    console.log(this.startingWorkingDirectory);
     this.userName = "User";
     process.chdir(homedir());
   }
