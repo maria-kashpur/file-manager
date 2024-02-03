@@ -1,6 +1,6 @@
 export default class MessagesService {
   static greetings(username) {
-    console.log(`Welcome to the File Manager, ${username}!`)
+    console.log(`Welcome to the File Manager, ${username}!`);
   }
 
   static goodbye(username) {
@@ -8,14 +8,14 @@ export default class MessagesService {
   }
 
   static workingDirectory() {
-    console.log(`You are currently in ${process.cwd()}.`);
+    console.log(`\nYou are currently in ${process.cwd()}\n`);
   }
 
   static unknownOperation() {
-    console.log(`Invalid input.`)
+    console.log(`Invalid input.`);
   }
 
   static errorExecutionOfOperation() {
-    console.log(`Operation failed.`)
+    console.log(`Operation failed.`);
   }
 }
