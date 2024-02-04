@@ -112,23 +112,25 @@ export default class FilesService {
     const absolutPathToDestination = this.#getAbsolutPath(pathToDestination);
 
     return new Promise(async (resolve, reject) => {
-      const brotliStreem =
-        action === "decompress"
-          ? createBrotliDecompress()
-          : createBrotliCompress();
+      let brotliStreem = null;
+
+      if (action === "compress") {
+        brotliStreem = createBrotliCompress();
+      } else if (action === "decompress") {
+        brotliStreem = createBrotliDecompress();
+      } else {
+        return reject();
+      }
+      
       const rs = createReadStream(absolutPathToFile);
       const ws = createWriteStream(absolutPathToDestination);
       brotliStreem.on("error", (e) =>
         reject(new Error(`error brotliStreem: ${e.message}`))
       );
-      rs.on("error", (e) => reject(`reading error: ${e.message}`));
-      ws.on("error", (e) => reject(`writting error: ${e.message}`));
-      ws.on("close", resolve);
-      await pipeline(rs, brotliStreem, ws, (e) => {
-        if (e) {
-          reject(`Pipeline failed: ${e.message}`);
-        }
-      });
+      rs.on("error", (e) => reject(new Error(`reading error: ${e.message}`)));
+      ws.on("error", (e) => reject(new Error(`writting error: ${e.message}`)));
+      const stream = rs.pipe(brotliStreem).pipe(ws);
+      stream.on('finish', resolve)
     });
   }
 }
