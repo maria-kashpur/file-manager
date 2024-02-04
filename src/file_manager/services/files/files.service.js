@@ -2,6 +2,7 @@ import { promises as fs, createReadStream, createWriteStream } from "fs";
 import path, { parse, isAbsolute, resolve } from "path";
 import { createBrotliCompress, createBrotliDecompress } from "zlib";
 import { pipeline } from "stream/promises";
+import { createHash } from "crypto";
 export default class FilesService {
   static #getAbsolutPath(source) {
     const currentDirectory = process.cwd();
