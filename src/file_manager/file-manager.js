@@ -11,13 +11,6 @@ export default class fileManager {
     process.chdir(homedir());
   }
 
-  setWorkingDir(value) {
-    if (this.root === this.worknigDir) {
-      return this.worknigDir;
-    }
-    return (this.worknigDir = value);
-  }
-
   async init() {
     const rl = readline.createInterface({
       input: process.stdin,
