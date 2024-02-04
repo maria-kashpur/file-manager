@@ -7,7 +7,6 @@ import OSService from "./services/os/os.service.js";
 
 export default class fileManager {
   constructor() {
-    this.startingWorkingDirectory = process.cwd();
     this.userName = "User";
     process.chdir(homedir());
   }
@@ -25,7 +24,6 @@ export default class fileManager {
       output: process.stdout,
     });
 
-    process.chdir(homedir());
     this.#getUserName();
     MessagesService.greetings(this.userName);
     MessagesService.workingDirectory();
@@ -174,8 +172,9 @@ export default class fileManager {
       command: null,
       params: [],
     };
-    let data = input.trim().replace(/\s+/g, " ").split(" ");
 
+    let data = input.trim().replace(/\s+/g, " ").split(' ');
+    
     if (data.length === 0) return null;
 
     if (data.length === 1) {
@@ -185,7 +184,14 @@ export default class fileManager {
 
     if (data.length > 1) {
       operation.command = data[0];
-      operation.params = data.slice(1);
+      const paramsStr = data.slice(1).join(" ");
+      const isQuotes = paramsStr.match(/"/g);
+        if (isQuotes) {
+          let params = paramsStr.trim().split(`"`).filter((el) => el!=='').map(el => el.trim());
+          operation.params = params;
+        } else {
+          operation.params = paramsStr.split(" ");
+        }
       return operation;
     }
   }
