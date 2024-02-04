@@ -25,3 +25,6 @@ List of operations and their syntax:
  - **compress *path_to_file path_to_destination*** - compress file (using Brotli algorithm, should be done using Streams API);
  - **decompress *path_to_file path_to_destination*** - decompress file (using Brotli algorithm, should be done using Streams API);
  - **.exit** - finish program.
+
+If the path contains spaces in the folder name or file name, use double quotes(").
+For example: cd "/Users/user/Desktop/github/file-manager/src/fff aaa"
