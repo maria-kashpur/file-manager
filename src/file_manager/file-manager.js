@@ -115,7 +115,7 @@ export default class fileManager {
         if (isValidParams(params, 1)) {
           switch (params[0]) {
             case "--EOL":
-              OSService.oel();
+                OSService.eol();              
               break;
             case "--cpus":
               OSService.cpus();
