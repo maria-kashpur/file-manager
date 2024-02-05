@@ -177,13 +177,13 @@ export default class fileManager {
 
     if (data.length > 1) {
       operation.command = data[0];
-      const paramsStr = data.slice(1).join(" ");
+      const paramsStr = input.trim().replace(/^[^\s]+(\s|$)/, '').trim();
       const isQuotes = paramsStr.match(/"/g);
         if (isQuotes) {
-          let params = paramsStr.trim().split(`"`).filter((el) => el!=='').map(el => el.trim());
+          let params = paramsStr.split(`"`).filter((el) => el!=='').map(el => el.trim());
           operation.params = params;
         } else {
-          operation.params = paramsStr.split(" ");
+          operation.params = paramsStr.replace(/\s+/g, " ").split(" ");
         }
       return operation;
     }
